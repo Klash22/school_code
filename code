@@ -1,0 +1,112 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
+
+// Функция для вывода кроссворда
+void printCrossword(vector<vector<char>>& crossword) {
+    for (int i = 0; i < crossword.size(); i++) {
+        for (int j = 0; j < crossword[i].size(); j++) {
+            cout << crossword[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
+int main() {
+    // Читаем слова из файла
+    ifstream file("words.txt");
+    vector<string> words;
+    string word;
+    while (file >> word) {
+        words.push_back(word);
+    }
+
+    // Генерируем кроссворд
+    srand(time(0));
+    vector<vector<char>> crossword(10, vector<char>(10));
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            crossword[i][j] = 'a' + rand() % 26;
+        }
+    }
+
+    // Выводим кроссворд
+    cout << "Find the words in the crossword:" << endl;
+    printCrossword(crossword);
+
+    // Игровой цикл
+    int score = 0;
+    while (true) {
+        // Запрашиваем слово
+        string guess;
+        cout << "enter the word: ";
+        cin >> guess;
+
+        // Проверяем, есть ли такое слово в списке
+        bool found = false;
+        for (int i = 0; i < words.size(); i++) {
+            if (guess == words[i]) {
+                found = true;
+                break;
+            }
+        }
+
+        // Если слово найдено, то изменяем кроссворд и увеличиваем счет
+        if (found) {
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    if (crossword[i][j] == guess[0]) {
+                        // Ищем слово по горизонтали
+                        bool horizontal = true;
+                        for (int k = 1; k < guess.length(); k++) {
+                            if (j + k >= 10 || crossword[i][j + k] != guess[k]) {
+                                horizontal = false;
+                                break;
+                            }
+                        }
+                        if (horizontal) {
+                            for (int k = 0; k < guess.length(); k++) {
+                                crossword[i][j + k] = toupper(crossword[i][j + k]);
+                            }
+                        }
+                        
+                        // Ищем слово по вертикали
+                        bool vertical;
+                        vertical = true;
+                        for (int k = 1; k < guess.length(); k++) {
+                            if (i + k >= 10 || crossword[i + k][j] != guess[k]) {
+                                vertical = false;
+                                break;
+                            }
+                        }
+                        if (vertical) {
+                            for (int k = 0; k < guess.length(); k++) {
+                                crossword[i + k][j] = toupper(crossword[i + k][j]);
+                            }
+                        }
+                    }
+                }
+            }
+            score++;
+            // Выводим измененный кроссворд и счет
+            cout << "Yea! Your score: " << score << endl;
+            printCrossword(crossword);
+        }
+        else {
+            cout << "No. Try again." << endl;
+        }
+
+        // Если все слова найдены, то завершаем игру
+        if (score == words.size()) {
+            cout << "You win!" << endl;
+            break;
+        }
+    }
+
+    return 0;
+}
